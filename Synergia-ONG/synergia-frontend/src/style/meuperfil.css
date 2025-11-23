@@ -1,0 +1,247 @@
+:root {
+  --color-green-dark: #008779;
+  --color-white: #ffffff;
+  --color-gray-text: #4a4a4a;
+}
+.navbar nav a.active-link {
+  color: var(--color-green-light); 
+}
+
+.navbar nav a.active-link:hover {
+  color: var(--color-green-light);
+}
+.hero-section {
+  background: linear-gradient(90deg, rgba(0,135,121,0.95), rgba(0,166,138,0.92));
+}
+
+
+.navbar nav a:hover {
+  color: var(--color-green-light); 
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+  body {
+  font-family: 'Montserrat', sans-serif;
+  color: var(--color-gray-text);
+  background: #f6fbfa; /* fundo claro padrão */
+}
+
+
+.contact-info {
+    flex: 1;
+    background-color: var(--color-green-dark);
+    color: var(--color-white);
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    
+    border-bottom: none; 
+}
+.navbar-contato {
+  background-color: var(--color-green-dark);
+  padding: 0;
+  margin-top: 0;
+}
+
+.navbar {
+  display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 50px; 
+    background-color: rgba(0, 0, 0, 0.2); 
+    color: var(--color-white);
+}
+
+.navbar .logo img {
+  height: 40px;
+}
+
+ .navbar nav a {
+    margin-left: 25px;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--color-white); 
+    transition: color 0.3s;
+        text-decoration: none; 
+}
+
+
+.navbar nav a:hover {
+    color: var(--color-green-light);
+    text-decoration: none; 
+}
+
+.perfil-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.titulo-perfil {
+  color: var(--color-green-dark);
+  font-weight: 800;
+  margin-bottom: 70px;
+}
+
+.info-usuario {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  margin-bottom: 50px;
+}
+
+.foto-usuario {
+  position: relative;
+}
+
+.foto-usuario img {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+}
+
+.editar-foto {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: var(--color-green-dark);
+  color: white;
+  border-radius: 50%;
+  padding: 8px;
+  font-size: 0.8em;
+  cursor: pointer;
+}
+.location-card-usuario {
+  flex: 0 0 calc(33.333% - 18.66px); 
+  max-width: 360px;
+  background: var(--color-card-background);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform .18s ease, box-shadow .18s ease;
+  min-height: 420px;
+}
+.dados-usuario label {
+  display: block;
+  font-weight: 900;
+  margin-top: 35px;
+  font-size: 1.1em;
+}
+
+.dados-usuario input {
+  width: 500px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-top: 5px;
+}
+
+.meus-locais h3 {
+  color: var(--color-green-dark);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.meus-locais p {
+  margin-bottom: 30px;
+  max-width: 850px;
+}
+
+.locais-container {
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 30px; 
+  margin-top: 20px;
+}
+
+.card-local {
+ 
+  width: 300px; 
+  text-align: center;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #ffffff; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+  
+  display: flex; 
+  flex-direction: column; 
+}
+
+.card-local img {
+  width: 100%;
+  height: 180px; 
+  object-fit: cover;
+}
+
+.card-local .card-info {
+  padding: 15px;
+  flex-grow: 1; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+  
+}
+
+.card-local .btn-detalhes {
+  margin-top: auto; 
+  background-color: #008779;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.card-local {
+  width: 280px;
+  background-color: #f4f4f4;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.card-local h4 {
+  padding: 10px;
+  font-weight: 600;
+  color: #999;
+}
+
+
+.card-info {
+  padding: 15px;
+}
+
+.card-info h5 {
+  font-size: 1.1em;
+  font-weight: 700;
+  color: var(--color-green-dark);
+}
+
+.btn-detalhes {
+  background-color: var(--color-green-dark);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.btn-detalhes:hover {
+  opacity: 0.85;
+}
+
+/* Força fundo branco somente na página de perfil */
+body {
+  background: #ffffff !important;
+}

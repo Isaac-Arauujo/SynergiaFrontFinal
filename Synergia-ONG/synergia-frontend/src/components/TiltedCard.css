@@ -1,0 +1,56 @@
+.tilted-card {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+  will-change: transform;
+}
+
+.tilted-card > * {
+  transform: translateZ(20px);
+}
+
+/* Efeito de brilho no hover */
+.tilted-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+.tilted-card:hover::before {
+  opacity: 1;
+}
+
+/* Melhorar performance */
+.tilted-card * {
+  transform-style: preserve-3d;
+}
+
+/* Suporte para dispositivos touch */
+@media (hover: none) {
+  .tilted-card {
+    transform: none !important;
+  }
+  
+  .tilted-card::before {
+    display: none;
+  }
+}
+
+/* Estados de foco para acessibilidade */
+.tilted-card:focus-within {
+  outline: 2px solid #00715D;
+  outline-offset: 2px;
+}

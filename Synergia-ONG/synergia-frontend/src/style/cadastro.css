@@ -1,0 +1,200 @@
+:root {
+    --color-primary: #008779; 
+    --color-secondary: #008779;
+    --color-text-dark: #333;
+    --color-background-light: #f7f7f7;
+    --color-link-blue: #008779;
+    --color-input-border: #cccc;
+    --font-family: 'Arial', 'Helvetica', sans-serif;
+    --color-input-background: #fff; 
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.background-container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    padding: 20px 0;
+    position: absolute;
+    top: 0;
+    left: 20px;
+}
+
+.synergia-logo {
+      height: 50px;  
+    width: auto;
+}
+
+
+.cadastro-card-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 100px;
+    width: 100%;
+    flex-grow: 1;
+}
+
+
+.cadastro-card-container::before {
+    content: '';
+    position: absolute;
+    top: 60%; 
+    left: 55%;
+    transform: translate(calc(-60% + 70px), calc(-50% + 25px)); 
+
+    width: 690px; 
+
+    height: 580px; 
+    background-color: var(--color-primary);
+    border-radius: 60px; 
+    z-index: 1;
+}
+
+.cadastro-card {
+    position: relative;
+    width: 670px; 
+    height: 670px;
+        background-color: white;
+    padding: 60px 70px 60px 70px; 
+    border-radius: 60px; 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; 
+}
+
+.card-title {
+    font-size: 1.5em;
+    font-weight: 500;
+    color: var(--color-text-dark);
+    margin-bottom: 40px; 
+}
+
+.cadastro-form {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+
+.input-group {
+    margin-bottom: 12px; /* reduz espaço entre campos */
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.input-group label {
+   display: block;
+    font-size: 1em;
+    color: var(--color-text-dark);
+  
+    width: 60px;
+    flex-shrink: 0;
+    text-align: left;
+    margin-right: 10px;}
+
+
+
+.input-group input {
+     flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--color-input-border);
+    border-radius: 25px;
+    font-size: 1.0em;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: var(--color-input-background); 
+}
+.btn {
+   width: 40%;
+    padding: 7px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.0em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: bold;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    text-decoration: none;
+}
+
+.btn-register-final {
+    background-color: var(--color-primary);
+    color: white;
+    margin-top: 6px; /* reduz espaço acima do botão */
+    display: block;
+}
+
+.btn-register-final:hover {
+    background-color: #007566;
+}
+
+.cadastro-text {
+    font-size: 1em;
+    color: var(--color-text-dark);
+    text-align: center;
+    margin-bottom: 5px;
+    margin-top: 12px;
+    width: 100%;
+    display: block;
+}
+
+.register-link-highlight {
+    font-weight: bold;
+    color: var(--color-primary); 
+  
+    text-decoration: none; 
+}
+
+footer {
+    background: transparent;
+    color: var(--color-text-dark);
+    position: relative;
+    z-index: 20; 
+    box-shadow: none;
+    padding: 12px 0;
+    margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+    .cadastro-card-container::before {
+        width: 420px;
+        height: 360px;
+        transform: translate(calc(-60% + 40px), calc(-50% + 10px));
+        top: 62%;
+        left: 60%;
+    }
+    .cadastro-card {
+        width: 92%;
+        padding: 40px 30px;
+        border-radius: 30px;
+    }
+}

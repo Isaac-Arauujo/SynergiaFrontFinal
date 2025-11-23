@@ -1,0 +1,120 @@
+/* ======== RESET ======== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ======== GARANTE FUNDO BRANCO NA PÁGINA INTEIRA ======== */
+body {
+  background: #fff !important;
+  font-family: 'Montserrat', sans-serif;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* ======== NAVBAR ======== */
+.navbar-contato {
+  background-color: #008779;
+  width: 100%;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+  background: #008779;
+  color: white;
+}
+
+.navbar nav a {
+  margin-left: 25px;
+  font-weight: 600;
+  color: white;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.navbar nav a:hover {
+  opacity: 0.7;
+}
+
+/* ======== CONTAINER GERAL DO CONTATO ======== */
+.contact-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 1400px;
+  margin: 40px auto;
+  gap: 0;
+  background: white;
+}
+
+/* ======== COLUNA DA ESQUERDA (VERDE) ======== */
+.contact-info {
+  background-color: #008779;
+  color: white;
+  width: 35%;
+  padding: 60px 40px;
+  border-radius: 20px 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* ======== COLUNA DA DIREITA (FORMULÁRIO) ======== */
+.contact-form {
+  width: 65%;
+  background: white;
+  padding: 50px 40px;
+  border-radius: 0 20px 20px 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.contact-form label {
+  font-weight: 700;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.contact-form input,
+.contact-form textarea,
+.contact-form select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  font-size: 1em;
+}
+
+/* BOTÃO */
+.btn-enviar {
+  width: 100%;
+  padding: 15px;
+  background: #008779;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-enviar:hover {
+  opacity: 0.85;
+}
+
+/* ======== RESPONSIVIDADE ======== */
+@media (max-width: 900px) {
+  .contact-wrapper {
+    flex-direction: column;
+  }
+
+  .contact-info,
+  .contact-form {
+    width: 100%;
+    border-radius: 0;
+  }
+}

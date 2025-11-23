@@ -1,0 +1,172 @@
+:root {
+    --color-primary: #008779; 
+    --color-secondary: #008779;
+    --color-text-dark: #333;
+    --color-background-light: #f7f7f7;
+    --color-link-blue: #008779;
+    --color-input-border: #ccc;
+    --font-family: 'Arial', 'Helvetica', sans-serif;
+    --color-input-background: #fff; 
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--color-background-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.background-container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 0;
+}
+
+.back-arrow {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.8em;
+    color: var(--color-primary);
+    text-decoration: none;
+    z-index: 100; 
+}
+ .logo {
+    display: flex;
+    align-items: center;
+    padding: 20px 0;
+    position: absolute;
+    top: 0;
+    left: 20px;
+}
+
+.synergia-logo {
+    height: 50px; 
+    width: auto;
+}
+
+.logo-text {
+     font-size: 1.8em;
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-left: 10px;
+    display: none;
+}
+
+.login-card-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 100px;
+    width: 100%;
+    flex-grow: 1;
+}
+
+.login-card-container::before {
+    content: '';
+    position: absolute;
+    top: 60%; 
+    left: 55%;
+    transform: translate(calc(-60% + 70px), calc(-50% + 25px)); 
+
+    width: 590px; 
+    height: 450px; 
+    background-color: var(--color-primary);
+    border-radius: 60px; 
+    z-index: 1;
+
+}
+
+.login-card {
+     position: relative;
+    width: 600px; 
+    height: 500px; 
+    background-color: white;
+    padding: 80px 70px 60px 70px;
+    border-radius: 60px; 
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-title {
+     font-size: 1.5em;
+    font-weight: 500;
+    color: var(--color-text-dark);
+    margin-bottom: 40px; 
+}
+
+.redefinir-senha-form {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+
+.input-group {
+    margin-bottom: 30px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.input-group label {
+    display: block;
+    font-size: 1em;
+    color: var(--color-text-dark);
+  
+    width: 60px;
+    flex-shrink: 0;
+    text-align: left;
+    margin-right: 10px;}
+
+
+.input-group input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--color-input-border);
+    border-radius: 25px;
+    font-size: 1.0em;
+    outline: none;
+    transition: border-color 0.2s;
+    background-color: var(--color-input-background); 
+}
+
+.btn { 
+    width: 40%;
+    padding: 7px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.0em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: bold;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    text-decoration: none; 
+}
+
+.btn-send { 
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.btn-send:hover {
+    background-color: #008779;
+}
