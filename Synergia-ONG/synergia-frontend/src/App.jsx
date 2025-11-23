@@ -24,7 +24,8 @@ import Tiete from './pages/descricaolocal/Tiete';
 import MainLayout from './layouts/MainLayout';
 import LocationDetail from './pages/LocationDetail';
 import EditLocation from './pages/EditLocation';
-
+import ToolDetail from './pages/ToolDetail';
+import EditTool from './pages/EditTool';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { usuario } = useAuth();
@@ -74,6 +75,20 @@ export default function App() {
           <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
           <Route path="/home" element={<Navigate to="/admin" replace />} />
           <Route path="*" element={<div style={{padding:40}}>404 - Página não encontrada</div>} />
+        
+          <Route path="/ferramentas/detalhe/:id" element={<ProtectedRoute><MainLayout><ToolDetail /></MainLayout></ProtectedRoute>} />
+<Route
+  path="/ferramentas/editar/:id"
+  element={
+    <ProtectedRoute requireAdmin={true}>
+      <MainLayout>
+        <EditTool />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
+        
+ 
         </Routes>
       </Router>
     </AuthProvider>
