@@ -83,18 +83,24 @@ export default function Cadastro() {
     setLoading(true);
 
     try {
-      const emailDisponivel = await usuarioService.verificarEmail(formData.email);
-      if (!emailDisponivel) {
-        setErrors({ email: "Email já cadastrado" });
-        setLoading(false);
-        return;
+      // Verifica email
+      if (typeof usuarioService.verificarEmail === "function") {
+        const emailDisponivel = await usuarioService.verificarEmail(formData.email);
+        if (!emailDisponivel) {
+          setErrors({ email: "Email já cadastrado" });
+          setLoading(false);
+          return;
+        }
       }
 
-      const cpfDisponivel = await usuarioService.verificarCpf(formData.cpf.replace(/\D/g, ""));
-      if (!cpfDisponivel) {
-        setErrors({ cpf: "CPF já cadastrado" });
-        setLoading(false);
-        return;
+      // Verifica CPF
+      if (typeof usuarioService.verificarCpf === "function") {
+        const cpfDisponivel = await usuarioService.verificarCpf(formData.cpf.replace(/\D/g, ""));
+        if (!cpfDisponivel) {
+          setErrors({ cpf: "CPF já cadastrado" });
+          setLoading(false);
+          return;
+        }
       }
 
       const usuarioData = {
@@ -102,19 +108,23 @@ export default function Cadastro() {
         dataNascimento: formData.dataNascimento,
         cpf: formData.cpf.replace(/\D/g, ""),
         email: formData.email,
-        senha: formData.senha
+        senha: formData.senha,
+        confirmacaoSenha: formData.confirmacaoSenha // <-- agora enviado
       };
 
       const result = await cadastrar(usuarioData);
 
-      if (result.success) {
+      if (result && result.success) {
         setSuccess("Cadastro realizado com sucesso! Redirecionando...");
         setTimeout(() => navigate("/login"), 1800);
       } else {
-        setErrors({ submit: result.error });
+        const msg = result?.error ?? "Erro no cadastro";
+        setErrors({ submit: String(msg) });
       }
     } catch (err) {
-      setErrors({ submit: "Erro ao conectar ao servidor" });
+      // Erro de conexão / inesperado
+      const msg = err?.message || "Erro ao conectar ao servidor";
+      setErrors({ submit: String(msg) });
     }
 
     setLoading(false);
@@ -133,7 +143,7 @@ export default function Cadastro() {
 
           {/* Mensagens */}
           {errors.submit && (
-            <p className="error-box">{errors.submit}</p>
+            <p className="error-box">{String(errors.submit)}</p>
           )}
           {success && (
             <p className="success-box">{success}</p>
