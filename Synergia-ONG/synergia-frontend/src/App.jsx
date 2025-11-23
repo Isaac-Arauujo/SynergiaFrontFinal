@@ -22,6 +22,9 @@ import Guaruja from './pages/descricaolocal/Guaruja';
 import Cipo from './pages/descricaolocal/Cipo';
 import Tiete from './pages/descricaolocal/Tiete';
 import MainLayout from './layouts/MainLayout';
+import LocationDetail from './pages/LocationDetail';
+import EditLocation from './pages/EditLocation';
+
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { usuario } = useAuth();
@@ -50,7 +53,7 @@ export default function App() {
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/cadastro" element={<PublicRoute><Cadastro /></PublicRoute>} />
           <Route path="/esqueci-senha" element={<PublicRoute><EsqueciSenha /></PublicRoute>} />
-          <Route path="/meuperfil" element={<MeuPerfil />} />
+          <Route path="/meuperfil" element={<ProtectedRoute><MainLayout><MeuPerfil /></MainLayout></ProtectedRoute>} />
           <Route path="/guaruja" element={<Guaruja />} />
           <Route path="/cipo" element={<Cipo />} />
           <Route path="/tiete" element={<Tiete />} />
@@ -58,6 +61,10 @@ export default function App() {
           <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><MainLayout><SuperAdminDashboard /></MainLayout></ProtectedRoute>} />
           <Route path="/locais" element={<ProtectedRoute><MainLayout><Locais /></MainLayout></ProtectedRoute>} />
           <Route path="/locais/novo" element={<ProtectedRoute requireAdmin={true}><MainLayout><AddLocation /></MainLayout></ProtectedRoute>} />
+          <Route path="/locais/detalhe/:id" element={<ProtectedRoute><MainLayout><LocationDetail /></MainLayout></ProtectedRoute>} />
+          {/* Edição restrita a admins */}
+          <Route path="/locais/editar/:id" element={<ProtectedRoute requireAdmin={true}><MainLayout><EditLocation /></MainLayout></ProtectedRoute>} />
+
           <Route path="/ferramentas" element={<ProtectedRoute requireAdmin={true}><MainLayout><Ferramentas /></MainLayout></ProtectedRoute>} />
           <Route path="/ferramentas/novo" element={<ProtectedRoute requireAdmin={true}><MainLayout><AddTool /></MainLayout></ProtectedRoute>} />
           <Route path="/inscricoes" element={<ProtectedRoute requireAdmin={true}><MainLayout><Inscricoes /></MainLayout></ProtectedRoute>} />
