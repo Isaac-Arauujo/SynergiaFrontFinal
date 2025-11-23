@@ -50,11 +50,16 @@ const InscricaoCard = ({ item, onClick }) => {
                 </div>
             </div>
 
-            {item.status === 'PENDENTE' && (
-                <button className="mt-4 flex items-center text-xs font-medium bg-synergia-green text-white px-4 py-2 rounded-lg hover:bg-synergia-dark transition-colors">
-                    Verificar <ChevronRight className="w-3 h-3 ml-1" />
-                </button>
-            )}
+           {item.status === 'PENDENTE' && (
+  <button
+    className="mt-4 flex items-center text-xs font-medium bg-synergia-green text-white px-4 py-2 rounded-lg hover:bg-synergia-dark transition-colors"
+    onClick={(e) => { e.stopPropagation(); onClick(item.id); }}
+    type="button"
+  >
+    Verificar <ChevronRight className="w-3 h-3 ml-1" />
+  </button>
+)}
+
         </div>
     );
 };

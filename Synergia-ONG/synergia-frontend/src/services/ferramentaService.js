@@ -1,3 +1,4 @@
+// src/services/ferramentaService.js
 import api from './api';
 
 export const ferramentaService = {
@@ -19,21 +20,16 @@ export const ferramentaService = {
     return response.data;
   },
 
-  // Verificar disponibilidade
-  verificarDisponibilidade: async (id, quantidade) => {
-    const response = await api.get(`/ferramentas/${id}/disponibilidade?quantidade=${quantidade}`);
+  // Criar nova ferramenta (payload deve corresponder ao FerramentaDTO do backend)
+  criar: async (payload) => {
+    // payload esperado (exemplos): { nome, descricao, imagemUrl, quantidade, quantidadeDisponivel }
+    const response = await api.post('/ferramentas', payload);
     return response.data;
   },
 
-  // Criar nova ferramenta
-  criar: async (ferramentaData) => {
-    const response = await api.post('/ferramentas', ferramentaData);
-    return response.data;
-  },
-
-  // Atualizar ferramenta
-  atualizar: async (id, ferramentaData) => {
-    const response = await api.put(`/ferramentas/${id}`, ferramentaData);
+  // Atualizar
+  atualizar: async (id, payload) => {
+    const response = await api.put(`/ferramentas/${id}`, payload);
     return response.data;
   },
 

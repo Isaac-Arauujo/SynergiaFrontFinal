@@ -1,69 +1,63 @@
+// src/services/inscricaoService.js
 import api from './api';
 
 export const inscricaoService = {
-  // Listar todas as inscrições
+  // GET /api/inscricoes
   listarTodas: async () => {
-    const response = await api.get('/inscricoes');
-    return response.data;
+    const res = await api.get('/inscricoes');
+    return res.data;
   },
 
-  // Listar por status
-  listarPorStatus: async (status) => {
-    const response = await api.get(`/inscricoes/status/${status}`);
-    return response.data;
-  },
-
-  // Listar por usuário
-  listarPorUsuario: async (usuarioId) => {
-    const response = await api.get(`/inscricoes/usuario/${usuarioId}`);
-    return response.data;
-  },
-
-  // Listar por local
-  listarPorLocal: async (localId) => {
-    const response = await api.get(`/inscricoes/local/${localId}`);
-    return response.data;
-  },
-
-  // Buscar inscrição por ID
+  // GET /api/inscricoes/{id}
   buscarPorId: async (id) => {
-    const response = await api.get(`/inscricoes/${id}`);
-    return response.data;
+    const res = await api.get(`/inscricoes/${id}`);
+    return res.data;
   },
 
-  // Criar nova inscrição
-  criar: async (usuarioId, inscricaoData) => {
-    const response = await api.post(`/inscricoes/usuario/${usuarioId}`, inscricaoData);
-    return response.data;
+  // GET /api/inscricoes/{id}/debug (se precisar)
+  debug: async (id) => {
+    const res = await api.get(`/inscricoes/${id}/debug`);
+    return res.data;
   },
 
-  // Confirmar inscrição
+  // POST /api/inscricoes
+  criar: async (payload) => {
+    const res = await api.post('/inscricoes', payload);
+    return res.data;
+  },
+
+  // PUT /api/inscricoes/{id}/confirmar (aprovacao)
   confirmar: async (id) => {
-    const response = await api.put(`/inscricoes/${id}/confirmar`);
-    return response.data;
+    const res = await api.put(`/inscricoes/${id}/confirmar`);
+    return res.data;
   },
 
-  // Recusar inscrição
-  recusar: async (id) => {
-    const response = await api.put(`/inscricoes/${id}/recusar`);
-    return response.data;
+  // PUT /api/inscricoes/{id}/recusar (recusa) - pode enviar motivo
+  recusar: async (id, payload = {}) => {
+    // backend espera PUT com body opcional { motivo: "..." }
+    const res = await api.put(`/inscricoes/${id}/recusar`, payload);
+    return res.data;
   },
 
-  // Atualizar status
-  atualizarStatus: async (id, status) => {
-    const response = await api.put(`/inscricoes/${id}/status?status=${status}`);
-    return response.data;
+  // DELETE /api/inscricoes/{id}
+  excluir: async (id) => {
+    const res = await api.delete(`/inscricoes/${id}`);
+    return res.data;
   },
 
-  // Cancelar inscrição
-  cancelar: async (id) => {
-    const response = await api.delete(`/inscricoes/${id}`);
-    return response.data;
+  // Listar por usuário, status, local (opcional)
+  listarPorUsuario: async (usuarioId) => {
+    const res = await api.get(`/inscricoes/usuario/${usuarioId}`);
+    return res.data;
   },
 
-  // Verificar se usuário já está inscrito
-  verificarInscricaoExistente: async (usuarioId, localId) => {
-    const response = await api.get(`/inscricoes/verificar/${usuarioId}/${localId}`);
-    return response.data;
+  listarPorStatus: async (status) => {
+    const res = await api.get(`/inscricoes/status/${status}`);
+    return res.data;
+  },
+
+  listarPorLocal: async (localId) => {
+    const res = await api.get(`/inscricoes/local/${localId}`);
+    return res.data;
   }
 };
