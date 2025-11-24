@@ -22,29 +22,26 @@ export const usuarioService = {
   },
 
   obterPerfil: async (usuarioId) => {
-    const res = await api.get(`/meu-perfil/${usuarioId}`);
-    return res.data; // espera PerfilResponse { usuario, inscricoes }
+    try {
+      const res = await api.get(`/meu-perfil/${usuarioId}`);
+      return res.data;
+    } catch (err) {
+      if (err?.response && [404, 400].includes(err.response.status)) {
+        const res2 = await api.get(`/usuarios/${usuarioId}`);
+        return res2.data;
+      }
+      throw err;
+    }
   },
 
-  /**
-   * atualizarPerfil: tenta primeiro /meu-perfil/{id}, se 404 tenta /usuarios/{id}
-   * Retorna o res.data do endpoint bem-sucedido.
-   */
   atualizarPerfil: async (usuarioId, payload) => {
-    // tenta /meu-perfil primeiro
     try {
       const res = await api.put(`/meu-perfil/${usuarioId}`, payload);
       return res.data;
     } catch (err) {
-      // se 404 ou 405 ou 400, tenta rota alternativa /usuarios/{id}
       if (err?.response && [404, 405, 400].includes(err.response.status)) {
-        try {
-          const res2 = await api.put(`/usuarios/${usuarioId}`, payload);
-          return res2.data;
-        } catch (err2) {
-          // lança o erro original ou o segundo, para o caller tratar
-          throw err2 || err;
-        }
+        const res2 = await api.put(`/usuarios/${usuarioId}`, payload);
+        return res2.data;
       }
       throw err;
     }

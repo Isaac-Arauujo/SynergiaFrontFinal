@@ -14,38 +14,43 @@ export const inscricaoService = {
     return res.data;
   },
 
-  // GET /api/inscricoes/{id}/debug (se precisar)
+  // debug
   debug: async (id) => {
     const res = await api.get(`/inscricoes/${id}/debug`);
     return res.data;
   },
 
   // POST /api/inscricoes
-  criar: async (payload) => {
-    const res = await api.post('/inscricoes', payload);
+  // payload: { localId, dataDesejada }
+  // usuarioId: opcional -> header 'Usuario-ID'
+  criar: async (payload, usuarioId = null) => {
+    const config = {
+      // timeout aumentado especificamente para este endpoint (60s)
+      timeout: 60000,
+      headers: {}
+    };
+    if (usuarioId) {
+      config.headers['Usuario-ID'] = String(usuarioId);
+    }
+    const res = await api.post('/inscricoes', payload, config);
     return res.data;
   },
 
-  // PUT /api/inscricoes/{id}/confirmar (aprovacao)
   confirmar: async (id) => {
     const res = await api.put(`/inscricoes/${id}/confirmar`);
     return res.data;
   },
 
-  // PUT /api/inscricoes/{id}/recusar (recusa) - pode enviar motivo
   recusar: async (id, payload = {}) => {
-    // backend espera PUT com body opcional { motivo: "..." }
     const res = await api.put(`/inscricoes/${id}/recusar`, payload);
     return res.data;
   },
 
-  // DELETE /api/inscricoes/{id}
   excluir: async (id) => {
     const res = await api.delete(`/inscricoes/${id}`);
     return res.data;
   },
 
-  // Listar por usuário, status, local (opcional)
   listarPorUsuario: async (usuarioId) => {
     const res = await api.get(`/inscricoes/usuario/${usuarioId}`);
     return res.data;
@@ -61,3 +66,5 @@ export const inscricaoService = {
     return res.data;
   }
 };
+
+export default inscricaoService;

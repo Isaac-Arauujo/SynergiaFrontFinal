@@ -2,134 +2,198 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { localService } from "../services/localService";
+import { inscricaoService } from "../services/inscricaoService";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function LocationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { usuario } = useAuth();
 
   const [local, setLocal] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [processingDelete, setProcessingDelete] = useState(false);
+
+  // modal voluntariado
+  const [volModalOpen, setVolModalOpen] = useState(false);
+  const [dataDesejada, setDataDesejada] = useState("");
+  const [inscricaoMsg, setInscricaoMsg] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
+    (async () => {
       try {
-        setLoading(true);
-        const result = await localService.buscarPorId(id);
-        setLocal(result);
-      } catch (err) {
-        console.error("Erro ao buscar local:", err);
+        const data = await localService.buscarPorId(id);
+        setLocal(data);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
-    };
-
-    load();
+    })();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!window.confirm("Tem certeza que deseja excluir este local?")) return;
+  if (loading) return <p style={{ padding: 30 }}>Carregando...</p>;
+  if (!local) return <p style={{ padding: 30 }}>Local não encontrado</p>;
+
+  const openVoluntariar = () => {
+    if (!usuario) return navigate("/login");
+    setVolModalOpen(true);
+  };
+
+  const enviarInscricao = async () => {
+    if (!dataDesejada) {
+      setInscricaoMsg("Selecione uma data!");
+      return;
+    }
 
     try {
-      setProcessingDelete(true);
-      await localService.excluir(id);
-      alert("Local excluído com sucesso!");
-      navigate("/locais");
+      setSubmitting(true);
+      const userId =
+        usuario?.id ||
+        usuario?.userId ||
+        usuario?.usuarioId ||
+        usuario?._id;
+
+      await inscricaoService.criar(
+        { localId: Number(id), dataDesejada },
+        userId
+      );
+
+      setInscricaoMsg("Solicitação enviada! Aguarde confirmação.");
+      setTimeout(() => setVolModalOpen(false), 1200);
     } catch (err) {
-      console.error("Erro ao excluir:", err);
-      alert("Erro ao excluir local");
-      setProcessingDelete(false);
+      setInscricaoMsg("Erro ao enviar inscrição.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleEdit = () => {
-    navigate(`/locais/editar/${id}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="p-6 text-center">
-        <p>Carregando local...</p>
-      </div>
-    );
-  }
-
-  if (!local) {
-    return (
-      <div className="p-6 text-center">
-        <p>Local não encontrado.</p>
-      </div>
-    );
-  }
-
-  const imagemUrl =
-    local.imagemUrl ||
-    local.imagem ||
-    (local.fotos && local.fotos[0]) ||
-    null;
-
   return (
-    <main className="p-6 max-w-4xl mx-auto">
-      <div className="bg-white shadow rounded overflow-hidden">
+    <main style={{ maxWidth: 900, margin: "20px auto", padding: 20 }}>
 
-        {/* IMAGEM */}
-        {imagemUrl ? (
-          <img
-            src={imagemUrl}
-            alt={local.nome}
-            className="w-full h-64 object-cover"
-          />
-        ) : (
-          <div className="w-full h-64 flex items-center justify-center border-b">
-            <p>Sem imagem disponível</p>
-          </div>
-        )}
+      {/* FOTO */}
+      <img
+        src={local.imagemUrl}
+        alt={local.nome}
+        style={{ width: "100%", maxHeight: 350, objectFit: "cover", borderRadius: 8 }}
+      />
 
-        <div className="p-6">
+      <h1 style={{ marginTop: 20, fontSize: 30 }}>{local.nome}</h1>
 
-          {/* TÍTULO */}
-          <h1 className="text-2xl font-bold mb-2">{local.nome}</h1>
+      {/* DESCRIÇÃO */}
+      <p style={{ marginTop: 10, fontSize: 18 }}>
+        {local.descricao || "Sem descrição."}
+      </p>
 
-          {/* DESCRIÇÃO */}
-          <p className="mb-4">{local.descricao || "Sem descrição."}</p>
+      {/* ENDEREÇO */}
+      <div style={{ marginTop: 15, fontSize: 18 }}>
+        <strong>Endereço:</strong><br />
+        {local.rua}, {local.numero} — CEP {local.cep}
+      </div>
 
-          {/* ENDEREÇO */}
-          {local.endereco && (
-            <p className="mb-4">
-              <strong>Endereço:</strong> {local.endereco}
-            </p>
-          )}
+      {/* DATAS */}
+      <div style={{ marginTop: 15, fontSize: 18 }}>
+        <strong>Período do Projeto:</strong><br />
+        {local.dataInicio} até {local.dataFinal}
+      </div>
 
-          <div className="flex gap-3 mt-6">
+      {/* BOTÕES */}
+      <div style={{ marginTop: 25, display: "flex", gap: 10 }}>
+        <button
+          onClick={openVoluntariar}
+          style={{
+            padding: "10px 20px",
+            background: "#1fa447",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            fontSize: 16,
+            cursor: "pointer"
+          }}
+        >
+          Voluntariar-se
+        </button>
 
-            {/* BOTÃO EDITAR */}
-            <button
-              onClick={handleEdit}
-              className="px-4 py-2 rounded bg-yellow-500 text-white hover:opacity-90"
-            >
-              Editar
-            </button>
+        <button
+          onClick={() => navigate("/locais")}
+          style={{
+            padding: "10px 20px",
+            background: "#ccc",
+            border: "none",
+            borderRadius: 6,
+            fontSize: 16,
+            cursor: "pointer"
+          }}
+        >
+          Voltar
+        </button>
+      </div>
 
-            {/* BOTÃO EXCLUIR */}
-            <button
-              onClick={handleDelete}
-              disabled={processingDelete}
-              className="px-4 py-2 rounded bg-red-600 text-white hover:opacity-90"
-            >
-              {processingDelete ? "Excluindo..." : "Excluir"}
-            </button>
 
-            {/* BOTÃO VOLTAR */}
-            <button
-              onClick={() => navigate("/locais")}
-              className="px-4 py-2 rounded border hover:bg-gray-100"
-            >
-              Voltar
-            </button>
+      {/* MODAL */}
+      {volModalOpen && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+          <div style={{
+            background: "#fff",
+            padding: 20,
+            borderRadius: 8,
+            width: "90%",
+            maxWidth: 400
+          }}>
+            <h2>Selecionar Data</h2>
+
+            <input
+              type="date"
+              value={dataDesejada}
+              onChange={(e) => setDataDesejada(e.target.value)}
+              style={{ width: "100%", marginTop: 10, padding: 10 }}
+            />
+
+            {inscricaoMsg && (
+              <p style={{ marginTop: 10, color: "green" }}>{inscricaoMsg}</p>
+            )}
+
+            <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+              <button
+                onClick={enviarInscricao}
+                disabled={submitting}
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  background: "#1fa447",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6
+                }}
+              >
+                {submitting ? "Enviando..." : "Enviar"}
+              </button>
+
+              <button
+                onClick={() => setVolModalOpen(false)}
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  background: "#ccc",
+                  border: "none",
+                  borderRadius: 6
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
 
           </div>
         </div>
-      </div>
+      )}
+
     </main>
   );
 }

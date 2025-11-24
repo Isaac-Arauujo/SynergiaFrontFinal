@@ -1,3 +1,4 @@
+// src/services/api.js
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8080/api';
@@ -5,10 +6,10 @@ const API_BASE_URL = 'http://localhost:8080/api';
 // Key usada no AuthContext
 const STORAGE_KEY = 'synergia_usuario';
 
+// aumentado timeout global de 10000 -> 60000 (60s)
 const api = axios.create({
   baseURL: API_BASE_URL,
-  // não forçar Content-Type aqui (evita problemas com FormData)
-  timeout: 10000,
+  timeout: 60000, // <-- 60 segundos
 });
 
 // Interceptor de request: procura token dentro do objeto salvo (synergia_usuario)
@@ -22,9 +23,10 @@ api.interceptors.request.use(
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        // opcional: injetar Usuario-ID automaticamente em todas as requests
+        // if (usuario?.id) config.headers['Usuario-ID'] = String(usuario.id);
       }
     } catch (err) {
-      // se parsing falhar, não impede a request
       console.warn('Erro ao ler token do localStorage', err);
     }
     return config;
@@ -37,12 +39,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Remove chave de usuário e opcional authToken
       try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem('authToken');
       } catch (e) {}
-      // redireciona para login
       window.location.href = '/login';
     }
     return Promise.reject(error);

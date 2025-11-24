@@ -1,11 +1,20 @@
+// src/pages/MeuPerfil.jsx
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { usuarioService } from "../services/usuarioService";
 import "../style/meuperfil.css";
 
+/*
+  Versão reforçada e autossuficiente:
+  - lê id do contexto, e como fallback lê do localStorage no momento do save
+  - expõe funções de debug em window: __MeuPerfil_handleSave, __MeuPerfil_lastPayload, __MeuPerfil_lastResponse
+  - faz fallback para fetch caso usuarioService falhe
+  - logs detalhados para debug no console
+*/
+
 export default function MeuPerfil() {
   const { usuario, atualizarUsuario } = useAuth();
-  const [perfil, setPerfil] = useState(null); // espera { usuario: UsuarioDTO, inscricoes: [] }
+  const [perfil, setPerfil] = useState(null);
   const [form, setForm] = useState({
     nomeCompleto: "",
     dataNascimento: "",
@@ -13,69 +22,59 @@ export default function MeuPerfil() {
     email: "",
     fotoPerfil: ""
   });
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Helper: pega id do objeto usuario (tenta várias chaves)
-  const resolveUserId = (u) => {
-    if (!u) return null;
-    return u.id || u.userId || u.usuarioId || u._id || null;
-  };
+  // utils
+  const resolveUserId = (u) => u?.id || u?.userId || u?.usuarioId || u?._id || null;
 
   useEffect(() => {
-    const fetchPerfil = async () => {
-      const id = resolveUserId(usuario);
-      console.log("MeuPerfil: usuario raw from context:", usuario, "resolvedId:", id);
+    console.log("[MeuPerfil] mount - usuario from context:", usuario);
+    const id = resolveUserId(usuario);
+    if (!id) {
+      setLoading(false);
+      setError("Usuário não autenticado ou id ausente.");
+      return;
+    }
 
-      if (!id) {
-        console.warn("MeuPerfil: usuario.id ausente — não fará GET automático.");
-        setLoading(false);
-        return;
-      }
-
+    (async () => {
       setLoading(true);
       setError("");
       try {
+        console.log(`[MeuPerfil] GET profile for id=${id}`);
         const data = await usuarioService.obterPerfil(id);
-        console.log("MeuPerfil: obterPerfil response:", data);
-
-        if (data && data.usuario) {
+        console.log("[MeuPerfil] obterPerfil response:", data);
+        if (data?.usuario) {
           setPerfil(data);
-          const u = data.usuario;
-          setForm({
-            nomeCompleto: u.nomeCompleto || u.nome || "",
-            dataNascimento: formatDateForInput(u.dataNascimento),
-            cpf: u.cpf || "",
-            email: u.email || "",
-            fotoPerfil: u.fotoPerfil || ""
-          });
-        } else if (data && data.nomeCompleto) {
+          fillFormFrom(data.usuario);
+        } else if (data?.nomeCompleto) {
           setPerfil({ usuario: data, inscricoes: [] });
-          setForm({
-            nomeCompleto: data.nomeCompleto || "",
-            dataNascimento: formatDateForInput(data.dataNascimento),
-            cpf: data.cpf || "",
-            email: data.email || "",
-            fotoPerfil: data.fotoPerfil || ""
-          });
+          fillFormFrom(data);
         } else {
-          setPerfil(null);
-          setError("Resposta inesperada ao obter perfil.");
+          setError("Resposta inesperada ao obter perfil");
+          console.warn("[MeuPerfil] obterPerfil resposta inesperada:", data);
         }
       } catch (err) {
-        console.error("MeuPerfil: erro obterPerfil", err);
+        console.error("[MeuPerfil] erro obterPerfil:", err);
         const msg = extractServerMessage(err) || "Erro ao carregar perfil";
         setError(msg);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchPerfil();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuario]);
+
+  function fillFormFrom(u) {
+    setForm({
+      nomeCompleto: u.nomeCompleto || u.nome || "",
+      dataNascimento: formatDateForInput(u.dataNascimento),
+      cpf: u.cpf || "",
+      email: u.email || "",
+      fotoPerfil: u.fotoPerfil || ""
+    });
+  }
 
   function formatDateForInput(value) {
     if (!value) return "";
@@ -100,9 +99,7 @@ export default function MeuPerfil() {
       } else if (raw.errors && typeof raw.errors === "object") {
         const vals = Object.values(raw.errors).flat();
         return vals.map(v => v.defaultMessage || JSON.stringify(v)).join("; ");
-      } else {
-        return JSON.stringify(raw);
-      }
+      } else return JSON.stringify(raw);
     } catch (e) {
       return JSON.stringify(raw);
     }
@@ -110,17 +107,73 @@ export default function MeuPerfil() {
 
   const onChange = (e) => {
     const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
+    setForm(s => ({ ...s, [name]: value }));
   };
 
-  // função que fará a requisição — separada para chamada manual de debug
-  const doSaveRequest = async (forcedId = null) => {
+  // doSave: tenta usuarioService, se falhar faz fetch PUT direto
+  const doSave = async (id, payload) => {
+    window.__MeuPerfil_lastPayload = payload;
+    console.log("[MeuPerfil] doSave -> id, payload:", id, payload);
+
+    try {
+      const res = await usuarioService.atualizarPerfil(id, payload);
+      console.log("[MeuPerfil] usuarioService.atualizarPerfil respondeu:", res);
+      window.__MeuPerfil_lastResponse = res;
+      return { ok: true, res };
+    } catch (err) {
+      console.warn("[MeuPerfil] usuarioService.atualizarPerfil erro (vai tentar fetch):", err);
+      try {
+        const url = `http://localhost:8080/api/usuarios/${encodeURIComponent(id)}`;
+        console.log("[MeuPerfil] fallback fetch PUT ->", url, "payload:", payload);
+        const r = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const text = await r.text();
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch(e) { parsed = text; }
+        console.log("[MeuPerfil] fallback fetch response status:", r.status, "body:", parsed);
+        window.__MeuPerfil_lastResponse = { status: r.status, body: parsed };
+        if (r.ok) return { ok: true, res: parsed };
+        return { ok: false, err: parsed, status: r.status };
+      } catch (fetchErr) {
+        console.error("[MeuPerfil] fallback fetch error:", fetchErr);
+        window.__MeuPerfil_lastResponse = { error: String(fetchErr) };
+        return { ok: false, err: fetchErr };
+      }
+    }
+  };
+
+  // handleSave: lê id do contexto ou localStorage (fallback) e chama doSave
+  const handleSave = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    console.log("[MeuPerfil] handleSave called (form submit or button click)", { form, usuario });
+    setSaving(true);
     setError("");
-    const id = forcedId || resolveUserId(usuario);
-    console.log("MeuPerfil.doSaveRequest -> id usado:", id, "usuario context:", usuario);
+
+    // tenta id do contexto; se não houver, pega do localStorage
+    let id = resolveUserId(usuario);
+    if (!id) {
+      try {
+        const raw = localStorage.getItem('synergia_usuario');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          id = parsed?.id || parsed?.userId || parsed?._id || null;
+          console.log("[MeuPerfil] id lido do localStorage como fallback:", id);
+        }
+      } catch (e) {
+        console.warn("[MeuPerfil] erro lendo localStorage para obter id:", e);
+      }
+    } else {
+      console.log("[MeuPerfil] id vindo do contexto:", id);
+    }
 
     if (!id) {
-      throw new Error("Usuário não autenticado: id ausente. Cheque localStorage 'synergia_usuario' e o objeto 'usuario' no AuthContext.");
+      setError("Usuário não autenticado (id ausente).");
+      console.warn("[MeuPerfil] handleSave aborted - no id:", usuario);
+      setSaving(false);
+      return;
     }
 
     const payload = {
@@ -129,81 +182,45 @@ export default function MeuPerfil() {
       email: form.email || undefined,
       fotoPerfil: form.fotoPerfil || undefined
     };
-    Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+    Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
 
-    console.log("MeuPerfil.doSaveRequest -> payload:", payload);
-
-    // faz a chamada via service (service já tenta /meu-perfil e fallback para /usuarios)
-    const res = await usuarioService.atualizarPerfil(id, payload);
-    console.log("MeuPerfil.doSaveRequest -> resposta:", res);
-    return res;
-  };
-
-  const handleSave = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    setSaving(true);
-    setError("");
+    window.__MeuPerfil_lastPayload = payload;
     try {
-      const res = await doSaveRequest();
-      if (res && res.usuario) {
-        setPerfil(res);
-        atualizarUsuario(res.usuario);
-        alert("Perfil atualizado com sucesso");
-      } else if (res && res.nomeCompleto) {
-        setPerfil((prev) => ({ usuario: res, inscricoes: prev?.inscricoes || [] }));
-        atualizarUsuario(res);
+      const result = await doSave(id, payload);
+      if (result.ok) {
+        console.log("[MeuPerfil] save success:", result.res);
+        if (result.res?.usuario) {
+          setPerfil(result.res);
+          atualizarUsuario(result.res.usuario);
+        } else if (result.res?.id || result.res?.nomeCompleto) {
+          setPerfil(prev => ({ usuario: result.res, inscricoes: prev?.inscricoes || [] }));
+          atualizarUsuario(result.res);
+        }
+        setError("");
         alert("Perfil atualizado com sucesso");
       } else {
-        setError("Resposta inesperada do servidor ao atualizar perfil.");
-        console.warn("MeuPerfil.handleSave resposta inesperada:", res);
+        console.warn("[MeuPerfil] save returned ok:false", result);
+        setError(result.err?.message || JSON.stringify(result.err) || `Erro status ${result.status}`);
       }
     } catch (err) {
-      console.error("MeuPerfil.handleSave erro:", err);
-      const msg = extractServerMessage(err) || err?.message || "Erro ao atualizar perfil";
-      setError(msg);
+      console.error("[MeuPerfil] erro in handleSave:", err);
+      setError(extractServerMessage(err) || "Erro ao salvar");
     } finally {
       setSaving(false);
     }
   };
 
-  // botão debug para forçar requisição mesmo sem usuario.id — pede que você cole o id manualmente
-  const handleDebugForce = async () => {
-    const manualId = window.prompt("Forçar PUT — cole o ID do usuário (ex: 1):");
-    if (!manualId) return;
-    try {
-      setSaving(true);
-      const res = await doSaveRequest(manualId);
-      console.log("MeuPerfil.handleDebugForce resposta:", res);
-      alert("Requisição forçada enviada. Veja console e Network.");
-      // atualiza estado se possível
-      if (res && res.usuario) {
-        setPerfil(res);
-        atualizarUsuario(res.usuario);
-      } else if (res && res.nomeCompleto) {
-        setPerfil((prev) => ({ usuario: res, inscricoes: prev?.inscricoes || [] }));
-        atualizarUsuario(res);
-      }
-    } catch (err) {
-      console.error("MeuPerfil.handleDebugForce erro:", err);
-      alert("Erro ao forçar requisição — veja console");
-    } finally {
-      setSaving(false);
-    }
-  };
-
+  // expor debug helpers
   useEffect(() => {
-    window.__debugAtualizarPerfil = async () => {
-      try {
-        await handleSave();
-      } catch (e) {
-        console.error(e);
-      }
-    };
+    window.__MeuPerfil_handleSave = handleSave;
+    window.__MeuPerfil_lastPayload = window.__MeuPerfil_lastPayload || null;
+    window.__MeuPerfil_lastResponse = window.__MeuPerfil_lastResponse || null;
+    console.log("[MeuPerfil] debug functions exported on window: __MeuPerfil_handleSave, __MeuPerfil_lastPayload, __MeuPerfil_lastResponse");
     return () => {
-      try { delete window.__debugAtualizarPerfil; } catch {}
+      try { delete window.__MeuPerfil_handleSave; } catch {}
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form, usuario]);
+  }, [form, perfil, usuario]);
 
   if (loading) return <div>Carregando perfil...</div>;
   if (!perfil) return <div>{error ? error : "Nenhum perfil encontrado."}</div>;
@@ -242,17 +259,12 @@ export default function MeuPerfil() {
           {error && <div className="error" role="alert">{String(error)}</div>}
 
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <button type="submit" disabled={saving}>
+            <button id="btn-meuperfil-save" type="submit" disabled={saving}>
               {saving ? "Salvando..." : "Salvar"}
             </button>
 
-            <button
-              type="button"
-              onClick={() => handleDebugForce()}
-              disabled={saving}
-              style={{ background: "#f6a", padding: "6px 10px" }}
-            >
-              Debug: Forçar PUT manual
+            <button id="btn-meuperfil-save-manual" type="button" onClick={handleSave} disabled={saving} style={{ background: "#ddd", padding: "6px 10px" }}>
+              Salvar (manual)
             </button>
           </div>
         </form>

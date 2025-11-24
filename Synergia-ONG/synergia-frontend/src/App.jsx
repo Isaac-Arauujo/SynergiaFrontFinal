@@ -26,7 +26,7 @@ import LocationDetail from './pages/LocationDetail';
 import EditLocation from './pages/EditLocation';
 import ToolDetail from './pages/ToolDetail';
 import EditTool from './pages/EditTool';
-
+import MeuPerfilStandalone from './pages/MeuPerfilStandalone';
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { usuario } = useAuth();
   if (!usuario) return <Navigate to="/login" replace />;
@@ -77,6 +77,8 @@ export default function App() {
           <Route path="*" element={<div style={{padding:40}}>404 - Página não encontrada</div>} />
         
           <Route path="/ferramentas/detalhe/:id" element={<ProtectedRoute><MainLayout><ToolDetail /></MainLayout></ProtectedRoute>} />
+
+<Route path="/meuperfil-test" element={<MeuPerfilStandalone />} />
 <Route
   path="/ferramentas/editar/:id"
   element={
@@ -85,6 +87,8 @@ export default function App() {
         <EditTool />
       </MainLayout>
     </ProtectedRoute>
+
+    
   }
 />
         
