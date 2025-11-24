@@ -17,10 +17,12 @@ export default function LocationDetail() {
   const [dataDesejada, setDataDesejada] = useState("");
   const [inscricaoMsg, setInscricaoMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [processingDelete, setProcessingDelete] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
+        setLoading(true);
         const data = await localService.buscarPorId(id);
         setLocal(data);
       } catch (e) {
@@ -44,7 +46,6 @@ export default function LocationDetail() {
       setInscricaoMsg("Selecione uma data!");
       return;
     }
-
     try {
       setSubmitting(true);
       const userId =
@@ -67,10 +68,24 @@ export default function LocationDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Tem certeza que deseja excluir este local?")) return;
+    try {
+      setProcessingDelete(true);
+      await localService.excluir(id);
+      alert("Local excluído com sucesso!");
+      navigate("/locais");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao excluir local");
+      setProcessingDelete(false);
+    }
+  };
+
+  const handleEdit = () => navigate(`/locais/editar/${id}`);
+
   return (
     <main style={{ maxWidth: 900, margin: "20px auto", padding: 20 }}>
-
-      {/* FOTO */}
       <img
         src={local.imagemUrl}
         alt={local.nome}
@@ -84,32 +99,28 @@ export default function LocationDetail() {
 
       <h1 style={{ marginTop: 20, fontSize: 30 }}>{local.nome}</h1>
 
-      {/* DESCRIÇÃO */}
       <p style={{ marginTop: 10, fontSize: 18 }}>
         {local.descricao || "Sem descrição."}
       </p>
 
-      {/* ENDEREÇO */}
       <div style={{ marginTop: 15, fontSize: 18 }}>
         <strong>Endereço:</strong><br />
         {local.rua}, {local.numero} — CEP {local.cep}
       </div>
 
-      {/* DATAS */}
       <div style={{ marginTop: 15, fontSize: 18 }}>
         <strong>Período do Projeto:</strong><br />
         {local.dataInicio} até {local.dataFinal}
       </div>
 
-      {/* FERRAMENTAS */}
+      {/* Ferramentas */}
       <div style={{ marginTop: 20, fontSize: 18 }}>
         <strong>Ferramentas Disponíveis:</strong><br /><br />
-        
         {local.ferramentas && local.ferramentas.length > 0 ? (
           <ul style={{ marginLeft: 20 }}>
             {local.ferramentas.map((f) => (
-              <li key={f.id} style={{ marginBottom: 6 }}>
-                {f.nome}
+              <li key={f.id || f.ferramentaId || JSON.stringify(f)} style={{ marginBottom: 6 }}>
+                {f.nome || f.title || f.descricao || JSON.stringify(f)}
               </li>
             ))}
           </ul>
@@ -118,8 +129,41 @@ export default function LocationDetail() {
         )}
       </div>
 
-      {/* BOTÕES */}
       <div style={{ marginTop: 25, display: "flex", gap: 10 }}>
+        {/* Mostrar Edit / Delete apenas para admin */}
+        {usuario?.isAdmin && (
+          <>
+            <button
+              onClick={handleEdit}
+              style={{
+                padding: "10px 16px",
+                background: "#f59e0b",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                cursor: "pointer"
+              }}
+            >
+              Editar
+            </button>
+
+            <button
+              onClick={handleDelete}
+              disabled={processingDelete}
+              style={{
+                padding: "10px 16px",
+                background: "#e11d48",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                cursor: "pointer"
+              }}
+            >
+              {processingDelete ? "Excluindo..." : "Excluir"}
+            </button>
+          </>
+        )}
+
         <button
           onClick={openVoluntariar}
           style={{
@@ -150,7 +194,7 @@ export default function LocationDetail() {
         </button>
       </div>
 
-      {/* MODAL */}
+      {/* Modal */}
       {volModalOpen && (
         <div style={{
           position: "fixed",

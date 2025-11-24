@@ -1,4 +1,4 @@
-// caminho: src/contexts/AuthContext.jsx
+// src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usuarioService } from '../services/usuarioService';
 import api from '../services/api';
@@ -12,18 +12,69 @@ export const useAuth = () => {
 
 const STORAGE_KEY = 'synergia_usuario';
 
+function detectIsAdmin(u) {
+  if (!u) return false;
+  // 1) campos booleanos diretos
+  if (u.isAdmin === true) return true;
+  if (u.admin === true) return true;
+  if (u.superAdmin === true) return true;
+  // 2) role singular (string)
+  const role = u.role || u.tipo || u.perfil || u.roleName;
+  if (typeof role === 'string' && /admin/i.test(role)) return true;
+  // 3) roles array
+  const roles = u.roles || u.perfis || u.grupos || u.authorities;
+  if (Array.isArray(roles) && roles.some(r => {
+    if (!r) return false;
+    if (typeof r === 'string') return /admin/i.test(r);
+    if (typeof r === 'object') {
+      const n = r.name || r.nome || r.role || r.authority;
+      return typeof n === 'string' && /admin/i.test(n);
+    }
+    return false;
+  })) return true;
+  // 4) nested wrappers
+  if (u.usuario) return detectIsAdmin(u.usuario);
+  if (u.data && typeof u.data === 'object') return detectIsAdmin(u.data);
+  return false;
+}
+
 function resolveUserObj(data) {
   // normaliza várias formas de resposta do backend
   if (!data) return null;
+
+  // Caso: { usuario: {...}, token: '...' }
   if (data.usuario) {
-    const u = data.usuario;
+    const u = { ...data.usuario };
     if (data.token) u.token = data.token;
+    // marca isAdmin
+    u.isAdmin = detectIsAdmin(u);
     return u;
   }
+
   // se veio wrapper { data: UsuarioDTO } ou UsuarioDTO direto
-  if (data.data && data.data.usuario) return data.data.usuario;
-  if (data.data && data.data.id) return data.data;
-  if (data.id || data.nomeCompleto) return data;
+  if (data.data && data.data.usuario) {
+    const u = { ...data.data.usuario };
+    u.isAdmin = detectIsAdmin(u);
+    return u;
+  }
+  if (data.data && data.data.id) {
+    const u = { ...data.data };
+    u.isAdmin = detectIsAdmin(u);
+    return u;
+  }
+  if (data.id || data.nomeCompleto) {
+    const u = { ...data };
+    u.isAdmin = detectIsAdmin(u);
+    return u;
+  }
+
+  // Se chegou aqui e é um objeto com propriedades de usuário em nível superior
+  if (typeof data === 'object') {
+    const u = { ...data };
+    u.isAdmin = detectIsAdmin(u);
+    return u;
+  }
+
   return null;
 }
 
@@ -31,7 +82,9 @@ export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      const normalized = resolveUserObj(parsed) || parsed;
+      return normalized;
     } catch {
       return null;
     }
@@ -51,8 +104,10 @@ export function AuthProvider({ children }) {
 
   const persistUsuario = (u) => {
     try {
-      setUsuario(u);
-      if (u) localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+      // normaliza e marca isAdmin antes de persistir
+      const normalized = resolveUserObj(u) || u || null;
+      setUsuario(normalized);
+      if (normalized) localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
       else localStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       console.warn('Erro ao persistir usuario', e);
@@ -66,7 +121,6 @@ export function AuthProvider({ children }) {
         try {
           const newVal = ev.newValue;
           const parsed = newVal ? JSON.parse(newVal) : null;
-          // normalize if necessary
           const normalized = resolveUserObj(parsed) || parsed;
           setUsuario(normalized);
           console.log('[AuthContext] storage event - usuario reloaded from storage', normalized);
@@ -78,7 +132,6 @@ export function AuthProvider({ children }) {
     };
     window.addEventListener('storage', onStorage);
 
-    // função exposta para forçar reload a partir do mesmo tab (útil após alterações por console)
     window.__auth_reloadFromStorage = () => {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -104,7 +157,6 @@ export function AuthProvider({ children }) {
     try {
       const data = await usuarioService.login(email, senha);
       const userObj = resolveUserObj(data) || {};
-      // Se backend não enviou id por qualquer motivo, tenta extrair de data.usuario etc já feito
       persistUsuario(userObj);
       if (userObj.token) localStorage.setItem('authToken', userObj.token);
       return userObj;
@@ -126,7 +178,6 @@ export function AuthProvider({ children }) {
     setCarregando(true);
     try {
       const res = await usuarioService.cadastrar(payload);
-      // normaliza retorno e não loga automaticamente (deixe fluxo de registro decidir)
       const userObj = resolveUserObj(res) || res;
       return { success: true, data: userObj };
     } catch (err) {
@@ -143,7 +194,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // permite setar id manualmente (debug/integração)
   const setUsuarioIdManual = (id) => {
     try {
       const cur = usuario ? { ...usuario } : {};
@@ -156,7 +206,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // util para forçar objeto (debug)
   const setUsuarioObject = (obj) => {
     persistUsuario(obj);
   };
