@@ -1,4 +1,3 @@
-// src/pages/LocationDetail.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { localService } from "../services/localService";
@@ -115,12 +114,12 @@ export default function LocationDetail() {
 
       {/* Ferramentas */}
       <div style={{ marginTop: 20, fontSize: 18 }}>
-        <strong>Ferramentas Disponíveis:</strong><br /><br />
+        <strong>Ferramentas e Quantidades:</strong><br /><br />
         {local.ferramentas && local.ferramentas.length > 0 ? (
           <ul style={{ marginLeft: 20 }}>
             {local.ferramentas.map((f) => (
-              <li key={f.id || f.ferramentaId || JSON.stringify(f)} style={{ marginBottom: 6 }}>
-                {f.nome || f.title || f.descricao || JSON.stringify(f)}
+              <li key={f.ferramentaId || f.id || JSON.stringify(f)} style={{ marginBottom: 6 }}>
+                {f.nome || f.title || `#${f.ferramentaId}`} — quantidade: {f.quantidade ?? (f.quantidade === 0 ? 0 : 1)}
               </li>
             ))}
           </ul>
@@ -130,7 +129,6 @@ export default function LocationDetail() {
       </div>
 
       <div style={{ marginTop: 25, display: "flex", gap: 10 }}>
-        {/* Mostrar Edit / Delete apenas para admin */}
         {usuario?.isAdmin && (
           <>
             <button
