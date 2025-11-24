@@ -1,3 +1,4 @@
+// src/pages/Perfil.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { usuarioService } from '../services/usuarioService';
@@ -5,7 +6,7 @@ import { inscricaoService } from '../services/inscricaoService';
 import { Loader, User, Mail, MapPin, Calendar, Edit, Save, X } from 'lucide-react';
 
 export default function Perfil() {
-    const { usuario, logout } = useAuth();
+    const { usuario, logout, atualizarUsuario } = useAuth();
     const [dadosUsuario, setDadosUsuario] = useState(null);
     const [inscricoes, setInscricoes] = useState([]);
     const [editando, setEditando] = useState(false);
@@ -26,23 +27,31 @@ export default function Perfil() {
         if (usuario) {
             carregarDadosUsuario();
             carregarInscricoes();
+        } else {
+            setCarregando(false);
         }
+        // eslint-disable-next-line
     }, [usuario]);
 
     const carregarDadosUsuario = async () => {
         try {
             setCarregando(true);
-            const dados = await usuarioService.buscarPorId(usuario.id);
-            setDadosUsuario(dados);
+            setError('');
+            // Tenta buscar o usuário por id (buscarPorId ou obterPerfil dependendo do backend)
+            const dados = await (usuarioService.buscarPorId ? usuarioService.buscarPorId(usuario.id) : usuarioService.obterPerfil(usuario.id));
+            // Normaliza: se veio wrapper { usuario: ... } usa o inside
+            const usuarioObj = dados?.usuario ? dados.usuario : dados;
+            setDadosUsuario(usuarioObj);
             setFormData({
-                nomeCompleto: dados.nomeCompleto || '',
-                email: dados.email || '',
-                dataNascimento: dados.dataNascimento || '',
-                telefone: dados.telefone || '',
-                fotoPerfil: dados.fotoPerfil || ''
+                nomeCompleto: usuarioObj.nomeCompleto || usuarioObj.nome || '',
+                email: usuarioObj.email || '',
+                dataNascimento: usuarioObj.dataNascimento ? (usuarioObj.dataNascimento.length >= 10 ? usuarioObj.dataNascimento.substring(0,10) : usuarioObj.dataNascimento) : '',
+                telefone: usuarioObj.telefone || '',
+                fotoPerfil: usuarioObj.fotoPerfil || ''
             });
         } catch (err) {
-            setError('Erro ao carregar dados do usuário');
+            console.error('Erro ao carregar dados do usuário:', err);
+            setError(err?.response?.data?.message || err?.message || 'Erro ao carregar dados do usuário');
         } finally {
             setCarregando(false);
         }
@@ -51,7 +60,7 @@ export default function Perfil() {
     const carregarInscricoes = async () => {
         try {
             const inscricoesData = await inscricaoService.listarPorUsuario(usuario.id);
-            setInscricoes(inscricoesData);
+            setInscricoes(inscricoesData || []);
         } catch (err) {
             console.error('Erro ao carregar inscrições:', err);
         }
@@ -71,25 +80,63 @@ export default function Perfil() {
             setError('');
             setSuccess('');
 
-            const dadosAtualizados = await usuarioService.atualizar(usuario.id, formData);
-            setDadosUsuario(dadosAtualizados);
+            // chama a função correta do service
+            const resposta = await usuarioService.atualizarPerfil(usuario.id, {
+                nomeCompleto: formData.nomeCompleto,
+                email: formData.email,
+                dataNascimento: formData.dataNascimento,
+                telefone: formData.telefone,
+                fotoPerfil: formData.fotoPerfil
+            });
+
+            // A API pode retornar vários formatos: { usuario: {...} } ou o próprio usuario DTO
+            const updatedUser = resposta?.usuario ? resposta.usuario : resposta;
+
+            // atualiza estado local
+            setDadosUsuario(updatedUser);
+            setFormData({
+                nomeCompleto: updatedUser.nomeCompleto || updatedUser.nome || '',
+                email: updatedUser.email || '',
+                dataNascimento: updatedUser.dataNascimento ? (updatedUser.dataNascimento.length >= 10 ? updatedUser.dataNascimento.substring(0,10) : updatedUser.dataNascimento) : '',
+                telefone: updatedUser.telefone || '',
+                fotoPerfil: updatedUser.fotoPerfil || ''
+            });
+
+            // atualiza contexto/auth (se hook disponibilizar)
+            try {
+                if (typeof atualizarUsuario === 'function') {
+                    atualizarUsuario(updatedUser);
+                }
+                // também garante persistência no localStorage (chave usada no AuthContext)
+                localStorage.setItem('synergia_usuario', JSON.stringify(updatedUser));
+            } catch (e) {
+                console.warn('Falha ao atualizar contexto/localStorage:', e);
+            }
+
             setSuccess('Dados atualizados com sucesso!');
             setEditando(false);
         } catch (err) {
-            setError('Erro ao atualizar dados');
+            console.error('Erro ao atualizar dados:', err);
+            const msg = err?.response?.data?.message
+                || (err?.response?.data ? JSON.stringify(err.response.data) : null)
+                || err.message
+                || 'Erro ao atualizar dados';
+            setError(String(msg));
         } finally {
             setSalvando(false);
         }
     };
 
     const handleCancelar = () => {
-        setFormData({
-            nomeCompleto: dadosUsuario.nomeCompleto || '',
-            email: dadosUsuario.email || '',
-            dataNascimento: dadosUsuario.dataNascimento || '',
-            telefone: dadosUsuario.telefone || '',
-            fotoPerfil: dadosUsuario.fotoPerfil || ''
-        });
+        if (dadosUsuario) {
+            setFormData({
+                nomeCompleto: dadosUsuario.nomeCompleto || '',
+                email: dadosUsuario.email || '',
+                dataNascimento: dadosUsuario.dataNascimento ? (dadosUsuario.dataNascimento.length >= 10 ? dadosUsuario.dataNascimento.substring(0,10) : dadosUsuario.dataNascimento) : '',
+                telefone: dadosUsuario.telefone || '',
+                fotoPerfil: dadosUsuario.fotoPerfil || ''
+            });
+        }
         setEditando(false);
         setError('');
         setSuccess('');
@@ -278,7 +325,7 @@ export default function Perfil() {
                                 ) : (
                                     <div className="flex items-center text-gray-900">
                                         <Calendar size={16} className="mr-2 text-gray-400" />
-                                        {new Date(dadosUsuario.dataNascimento).toLocaleDateString('pt-BR')}
+                                        {dadosUsuario.dataNascimento ? new Date(dadosUsuario.dataNascimento).toLocaleDateString('pt-BR') : '-'}
                                         <span className="ml-2 text-gray-500">
                                             ({calcularIdade(dadosUsuario.dataNascimento)} anos)
                                         </span>
@@ -355,7 +402,7 @@ export default function Perfil() {
                                                      inscricao.status === 'CONFIRMADA' ? 'Confirmada' : 'Recusada'}
                                                 </span>
                                                 <span className="text-sm text-gray-500">
-                                                    {new Date(inscricao.dataDesejada).toLocaleDateString('pt-BR')}
+                                                    {inscricao.dataDesejada ? new Date(inscricao.dataDesejada).toLocaleDateString('pt-BR') : '-'}
                                                 </span>
                                             </div>
                                             <h5 className="font-bold text-lg text-gray-800 mb-2">
