@@ -13,7 +13,6 @@ export default function LocationDetail() {
   const [local, setLocal] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // modal voluntariado
   const [volModalOpen, setVolModalOpen] = useState(false);
   const [dataDesejada, setDataDesejada] = useState("");
   const [inscricaoMsg, setInscricaoMsg] = useState("");
@@ -75,7 +74,12 @@ export default function LocationDetail() {
       <img
         src={local.imagemUrl}
         alt={local.nome}
-        style={{ width: "100%", maxHeight: 350, objectFit: "cover", borderRadius: 8 }}
+        style={{
+          width: "100%",
+          maxHeight: 350,
+          objectFit: "cover",
+          borderRadius: 8
+        }}
       />
 
       <h1 style={{ marginTop: 20, fontSize: 30 }}>{local.nome}</h1>
@@ -95,6 +99,23 @@ export default function LocationDetail() {
       <div style={{ marginTop: 15, fontSize: 18 }}>
         <strong>Período do Projeto:</strong><br />
         {local.dataInicio} até {local.dataFinal}
+      </div>
+
+      {/* FERRAMENTAS */}
+      <div style={{ marginTop: 20, fontSize: 18 }}>
+        <strong>Ferramentas Disponíveis:</strong><br /><br />
+        
+        {local.ferramentas && local.ferramentas.length > 0 ? (
+          <ul style={{ marginLeft: 20 }}>
+            {local.ferramentas.map((f) => (
+              <li key={f.id} style={{ marginBottom: 6 }}>
+                {f.nome}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Nenhuma ferramenta cadastrada.</p>
+        )}
       </div>
 
       {/* BOTÕES */}
@@ -128,7 +149,6 @@ export default function LocationDetail() {
           Voltar
         </button>
       </div>
-
 
       {/* MODAL */}
       {volModalOpen && (
