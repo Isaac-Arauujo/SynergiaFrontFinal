@@ -24,7 +24,7 @@ function Sidebar() {
     <div className="w-64 bg-white shadow-xl flex flex-col p-4 border-r border-gray-200 h-screen sticky top-0">
       
       {/* Logo */}
-      <Link to="/admin" className="flex items-center py-2 mb-8 cursor-pointer">
+      <Link to="/" className="flex items-center py-2 mb-8 cursor-pointer">
         <div className="h-8 w-8 bg-synergia-green rounded-lg flex items-center justify-center mr-2">
           <span className="text-white font-bold text-sm">S</span>
         </div>

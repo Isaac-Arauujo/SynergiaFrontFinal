@@ -64,7 +64,7 @@ export default function LandingPage() {
           {usuario ? (
             <button
               className="profile-button"
-              onClick={() => navigate("/usuario")}
+              onClick={() => navigate("/login")}
             >
               <img
                 src={
